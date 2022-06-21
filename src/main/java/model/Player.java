@@ -2,7 +2,6 @@ package model;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import Controller.Observer.Observable;
@@ -405,7 +404,7 @@ class Player
 
 	}
 
-	public boolean hasObservver(Observer o)
+	public boolean hasObserver(Observer o)
 	{	
 		return observer.stream().anyMatch(obs-> obs.equals((PlayerObserver)o));
 	}

@@ -2,9 +2,9 @@ package View;
 import javax.swing.*;
 import java.awt.*;
 
-import Controller.Observer.Observer;
+import Controller.Observer.GameObserver;
 
-public class MainFrame extends JFrame implements Observer{
+public class MainFrame extends JFrame implements GameObserver{
     public final int DFLT_WIDTH = 1100;
     public final int DFLT_HEIGHT = 700;
     private static int num_players = 0;
@@ -55,5 +55,11 @@ public class MainFrame extends JFrame implements Observer{
 	public void notifyTurn(Integer turn) 
     {
 	}
+
+    @Override
+    public void notifyHasBought(boolean hasBought) 
+    {
+    }
+    
 }
 

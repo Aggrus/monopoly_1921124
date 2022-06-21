@@ -213,7 +213,7 @@ abstract class AbstractTile implements Observable
 		}
 	}
 
-	public boolean hasObservver(Observer o)
+	public boolean hasObserver(Observer o)
 	{
 		Optional<TileObserver> observerFromList = observer.stream().filter(obs-> obs.equals(o)).findAny();
 		return observerFromList.isPresent();

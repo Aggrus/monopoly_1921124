@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import Controller.Observer.GameObserver;
 import Controller.Observer.Observable;
 import Controller.Observer.Observer;
 import enums.BuildingEnum;
@@ -38,6 +39,16 @@ public class Game
 	private static List<AbstractTile> tiles;
 
 	private static AbstractCard drawnCard;
+
+	private static boolean hasBought;
+
+	public static boolean hasBought() {
+		return hasBought;
+	}
+
+	public static void setHasBought(boolean hasBought) {
+		Game.hasBought = hasBought;
+	}
 
 	public static AbstractCard getDrawnCard() {
 		return drawnCard;
@@ -183,9 +194,11 @@ public class Game
 	@Override
 	public void add( final Observer o )
 	{
-		this.observadores.add( o );
-		o.notifyNumPlayers( getNumPlayers() );
-		o.notifyTurn(turn);
+		GameObserver observer = (GameObserver)o;
+		this.observadores.add( observer );
+		observer.notifyNumPlayers( getNumPlayers() );
+		observer.notifyTurn(turn);
+		observer.notifyHasBought(hasBought);
 	}
 
 	// implementações do design patter Observer
@@ -196,27 +209,23 @@ public class Game
 		this.observadores.remove( o );
 	}
 
-	private List<Observer> observadores = new ArrayList<Observer>();
+	private List<GameObserver> observadores = new ArrayList<GameObserver>();
 
 	@Override
 	public void update(Observer o) 
 	{
-		Optional<Observer> observerFromList = observadores.stream().filter(obs-> obs.equals(o)).findAny();
+		Optional<GameObserver> observerFromList = observadores.stream().filter(obs-> obs.equals((GameObserver)o)).findAny();
 		if (observerFromList.isPresent())
 		{
-			o.notifyNumPlayers( getNumPlayers() );
-			o.notifyTurn(turn);
+			observerFromList.get().notifyNumPlayers( getNumPlayers() );
+			observerFromList.get().notifyHasBought(hasBought);
+			observerFromList.get().notifyTurn(turn);
 		}
 	}
 
-	public void updateAll()
+	public boolean hasObserver(Observer o)
 	{
-		observadores.forEach(o -> update(o));
-	} 
-
-	public boolean hasObservver(Observer o)
-	{
-		Optional<Observer> observerFromList = observadores.stream().filter(obs-> obs.equals(o)).findAny();
+		Optional<GameObserver> observerFromList = observadores.stream().filter(obs-> obs.equals((GameObserver)o)).findAny();
 		return observerFromList.isPresent();
 	}
 

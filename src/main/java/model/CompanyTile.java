@@ -51,6 +51,7 @@ class CompanyTile
 		player.loseMoney( getValue() );
 		setOwner( player );
 		setCanPurchase( false );
+		Game.setHasBought(true);
 	}
 
 	/**

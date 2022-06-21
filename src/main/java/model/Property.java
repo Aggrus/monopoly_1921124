@@ -1,5 +1,6 @@
 package model;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -33,6 +34,7 @@ class Property
 		setSpecialProperty( TileEnum.NONE );
 		setOwner( null );
 		setBuildingValue(buildingValue);
+		setBuildings(new ArrayList<Building>());
 		this.firstRent = rent;
 	}
 
@@ -47,6 +49,7 @@ class Property
 		setSpecialProperty( property.getSpecialProperty() );
 		setOwner( property.getOwner() );
 		setBuildingValue(property.getBuildingValue());
+		setBuildings(new ArrayList<Building>());
 		this.firstRent = rent;
 	}
 
@@ -74,22 +77,24 @@ class Property
 	public boolean buyBuilding( final Integer playerId, final Building building )
 	{
 		Player player = Game.getPlayerList().get(playerId);
+		boolean didBuy = true;
 		try
 		{
 			addBuilding( player, building );
 		}
 		catch ( final WrongPlayerException e )
 		{
-			return false;
+			didBuy = false;
 		}
 		catch (final IllegalRuleException c)
 		{
 			c.printStackTrace();
-			return false;
+			didBuy = false;
 		}
 
 		player.loseMoney( building.getPrice() );
-		return true;
+		Game.setHasBought(true);
+		return didBuy;
 
 	}
 
@@ -109,6 +114,7 @@ class Property
 		player.loseMoney( getValue() );
 		setOwner( player );
 		setCanPurchase( false );
+		Game.setHasBought(true);
 	}
 
 	private boolean canBuild()
@@ -120,7 +126,7 @@ class Property
 		return thisGroup.allMatch( t -> getBuildings().size() <= ( ( Property ) t ).getBuildings().size() );
 	}
 
-	private boolean canBuildHotel()
+	public boolean canBuildHotel()
 	{
 
 		return ( ( getBuildings().size() > 1 ) && !hasHotel() );
@@ -129,7 +135,7 @@ class Property
 	private boolean checkAddBuilding( final Building building )
 		throws IllegalRuleException
 	{
-		boolean canAddBuilding = canBuild() && checkGroupOwner();
+		boolean canAddBuilding = true;
 		if ( building.getBuildingType().equals( BuildingEnum.HOTEL ) )
 		{
 			if ( !canBuildHotel() )

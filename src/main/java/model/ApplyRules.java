@@ -19,10 +19,11 @@ import enums.TileColorEnum;
 public class ApplyRules
 {
 
-	public static Integer applyTileRuleToPlayerById( final Integer playerId )
+	public static Integer applyTileRuleToPlayerById( final Integer playerId, Observer o )
 	{
 		final Player player = Game.getPlayerList().get( playerId );
 		final AbstractTile playerTile = Game.getTiles().get( player.getBoardPosition() );
+		Integer card = null;
 		switch ( player.getBoardPosition() )
 		{
 			case 0 :
@@ -38,7 +39,8 @@ public class ApplyRules
 			case 37 :
 			{
 				( ( DrawCardTile ) playerTile ).tileRule( playerId );
-				return DrawCardTile.drawnCard.getId();
+				card =  DrawCardTile.drawnCard.getId();
+				break;
 			}
 			case 5 :
 			case 7 :
@@ -81,13 +83,15 @@ public class ApplyRules
 				break;
 			}
 		}
-		return null;
+		player.update(o);
+		return card;
 	}
 
 	public static String buyBuilding(
 		final Integer playerId,
 		final Integer boardPosition,
-		final BuildingEnum buildingType )
+		final BuildingEnum buildingType,
+		Observer o )
 	{
 		String response = "";
 		final Player player = Game.getPlayerList().get( playerId );
@@ -109,13 +113,63 @@ public class ApplyRules
 		{
 			response = "Falha! Não pode comprar construção aqui!";
 		}
+		player.update(o);
+		Game.getInstance().update(o);
 		return response;
 	}
 
-	public static String buyTile( final Integer playerId )
+	public static boolean canBuyTile(final Integer boardPosition)
+	{
+		AbstractTile tile = Game.getTiles().get( boardPosition );
+		boolean canBuy = false;
+		if ( tile instanceof CompanyTile)
+		{
+			canBuy = ((CompanyTile)tile).getCanPurchase();
+		}
+		else if (tile instanceof Property)
+		{
+			canBuy = ((Property)tile).getCanPurchase();
+		}
+		return canBuy;
+	}
+
+	public static boolean canBuyHouse(final Integer playerId, final Integer boardPosition)
+	{
+		final Player player = Game.getPlayerList().get( playerId );
+		AbstractTile tile = Game.getTiles().get( player.getBoardPosition() );
+		final boolean isProperty = (tile instanceof Property);
+		boolean isOwner = false;
+		if ( tile.getOwner() != null )
+		{
+			isOwner = tile.getOwner().equals(player);
+		}
+		
+		return isProperty && isOwner;
+	}
+
+	public static boolean canBuyHotel(final Integer playerId, final Integer boardPosition)
+	{
+		final Player player = Game.getPlayerList().get( playerId );
+		AbstractTile tile = Game.getTiles().get( player.getBoardPosition() );
+		final boolean isProperty = (tile instanceof Property);
+		boolean isOwner = false;
+		if ( tile.getOwner() != null )
+		{
+			isOwner = tile.getOwner().equals(player);
+		}
+		boolean canBuyHotel = false;
+		if ( isProperty )
+		{
+			canBuyHotel = ((Property)tile).canBuildHotel();
+		}
+		return isProperty && isOwner && canBuyHotel;
+	}
+
+	public static String buyTile( final Integer playerId, Observer o )
 	{
 		final Player player = Game.getPlayerList().get( playerId );
 		final AbstractTile currentTile = Game.getTiles().get( player.getBoardPosition() );
+		String response = "Compra feita com sucesso!";
 		if ( currentTile.getCanPurchase() )
 		{
 			try
@@ -142,10 +196,20 @@ public class ApplyRules
 			catch ( final IllegalRuleException e )
 			{
 				e.printStackTrace();
-				return e.getMessage();
+				response =  e.getMessage();
 			}
 		}
-		return "Compra feita com sucesso!";
+		player.update(o);
+		if (Game.getInstance().hasObserver(o))
+		{
+			Game.getInstance().update(o);
+		}
+		else
+		{
+			Game.getInstance().add(o);
+		}
+		
+		return response;
 	}
 
 	public static boolean checkPlayerFreed( final List<Integer> roll, final Integer playerId )
@@ -532,6 +596,7 @@ public class ApplyRules
 								Long.valueOf( 975 ),
 								Long.valueOf( 1150 )},
 					Long.valueOf( 150 ) ) );
+		Game.setTiles(board);
 	}
 
 	public static void createPlayers( Observer o)
@@ -647,7 +712,7 @@ public class ApplyRules
 	public static void nextTurn(Observer o)
 	{
 		Game.setTurn((Game.getTurn() + 1) % Game.getNumPlayers());
-		if (Game.getInstance().hasObservver(o))
+		if (Game.getInstance().hasObserver(o))
 		{
 			Game.getInstance().update(o);
 		}
@@ -731,6 +796,7 @@ public class ApplyRules
 		id++;
 		deck.add( new DefaultCard( id, false, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 50 ) ) );
 
+		Game.setCards(deck);
 	}
 
 }

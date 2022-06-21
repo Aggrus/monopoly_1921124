@@ -15,12 +15,12 @@ import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
 import Controller.GameController;
+import Controller.Observer.GameObserver;
 import Controller.Observer.PlayerObserver;
-import model.ApplyRules;
 
 public class GameScreen
 	extends JPanel
-	implements MouseListener, PlayerObserver
+	implements MouseListener, PlayerObserver, GameObserver
 {
 
 	private static Integer currentTurn = 0;
@@ -49,6 +49,8 @@ public class GameScreen
 		GameScreen.playerPositions = new ArrayList<Integer>( 6 );
 		this.dice = new ArrayList<Integer>();
 		this.hasRolled = false;
+		GameScreen.hasBought = false;
+		this.message = "";
 		while ( GameScreen.playerPositions.size() < num_players )
 		{
 			GameScreen.playerPositions.add( 0 );
@@ -172,6 +174,89 @@ public class GameScreen
 		}
 	}
 
+	private boolean didClickBuyTileButton(final int x, final int y)
+	{
+		final boolean xBound = ( ( x >= 700 ) && ( x <= 1000 ) );
+		final boolean yBound = ( ( y >= 30 ) && ( y <= 80 ) );
+		return xBound && yBound && hasRolled && !hasBought;
+	}
+
+	private void drawBuyTileButton( final Graphics g )
+	{	
+		if (hasRolled && GameController.getInstance().canBuyTile(playerPositions.get(currentTurn)) && !hasBought)
+		{
+			message = "Comprar terreno!";
+			g.setColor( Color.WHITE );
+			g.drawRect( 700, 30, 300, 50 );
+			g.fillRect( 700, 30, 300, 50 );
+			setColorByTurn( g, currentTurn );
+			g.setFont( g.getFont().deriveFont( g.getFont().getStyle(), 20 ) );
+			g.drawChars( message.toCharArray(), 0, message.length(), 700 + (message.length()*20)/4, 60 );
+			message = "";
+		}
+	}
+
+	private boolean didClickBuyHouseButton(final int x, final int y)
+	{
+		final boolean xBound = ( ( x >= 650 ) && ( x <= (("Comprar casa!".length() + 1)*20)) );
+		final boolean yBound = ( ( y >= 30 ) && ( y <= 80 ) );
+		return xBound && yBound && hasRolled && !hasBought;
+	}
+
+	private boolean didClickBuyHotelButton(final int x, final int y)
+	{
+		int firstButtonLength = 650 + (("Comprar casa!".length() + 1)*20);	
+		final boolean xBound = ( ( x >= firstButtonLength ) && ( x <= (firstButtonLength + (("Comprar hotel!".length() + 1)*20))) );
+		final boolean yBound = ( ( y >= 30 ) && ( y <= 80 ) );
+		return xBound && yBound && hasRolled && !hasBought;
+	}
+
+	private void drawBuyHouseButton( final Graphics g )
+	{	
+		if (hasRolled && GameController.getInstance().canBuyHouse(currentTurn, playerPositions.get(currentTurn)) && !hasBought)
+		{
+			message = "Comprar casa!";	
+			Integer fontSize = 20;
+			g.setColor( Color.BLACK );
+			int widthBox = (message.length()) * fontSize;
+			g.drawRect( 650, 30, widthBox, 50 );
+			g.setColor( Color.WHITE );
+			g.fillRect( 650, 30, widthBox, 50 );
+			setColorByTurn( g, currentTurn );
+			g.setFont( g.getFont().deriveFont( g.getFont().getStyle(), fontSize ) );		
+			g.drawChars( message.toCharArray(), 0, message.length(), 650 + widthBox/4, 60 );
+			message = "";
+		}
+	}
+
+	private void drawBuyHotelButton( final Graphics g )
+	{	
+		if (hasRolled && GameController.getInstance().canBuyHotel(currentTurn, playerPositions.get(currentTurn)) && !hasBought)
+		{
+			Integer fontSize = 20;
+			Integer width = (message.length() ) * fontSize;
+			message = "Comprar hotel!";
+			Integer newWidth = (message.length() ) * fontSize;
+			g.setColor( Color.BLACK );
+			g.drawRect( 650 + width, 30, newWidth, 50 );
+			g.setColor( Color.WHITE );
+			g.fillRect( 650 + width, 30, newWidth, 50 );
+			setColorByTurn( g, currentTurn );
+			g.setFont( g.getFont().deriveFont( g.getFont().getStyle(), fontSize ) );		
+			g.drawChars( message.toCharArray(), 0, message.length(), 650 + width + newWidth/2, 60 );
+			message = "";
+		}
+	}
+
+	private void drawMessage( final Graphics g )
+	{
+		if (hasBought)
+		{
+			g.setColor( Color.WHITE );
+			g.drawChars( message.toCharArray(), 0, message.length(), 800, 60 );
+		}
+	}
+
 	private void drawRollDiceButton( final Graphics g )
 	{	
 		if (!hasRolled)
@@ -279,7 +364,22 @@ public class GameScreen
 		final int x = e.getX(), y = e.getY();
 
 		System.out.printf( "x = %d\ny = %d\n", x, y );
-		if ( didClickRollDice( x, y ) )
+		if (didClickBuyTileButton(x, y))
+		{
+			message = GameController.getInstance().buyTile(currentTurn, GameScreen.getInstance(MainFrame.WIDTH, MainFrame.HEIGHT, num_players));
+			repaint();
+		}
+		else if (didClickBuyHouseButton(x, y))
+		{
+			message = GameController.getInstance().buyHouse(currentTurn, playerPositions.get(currentTurn), GameScreen.getInstance(MainFrame.WIDTH, MainFrame.HEIGHT, num_players));
+			repaint();
+		}
+		else if (didClickBuyHotelButton(x, y))
+		{
+			message = GameController.getInstance().buyHotel(currentTurn, playerPositions.get(currentTurn), GameScreen.getInstance(MainFrame.WIDTH, MainFrame.HEIGHT, num_players));
+			repaint();
+		}
+		else if ( didClickRollDice( x, y ) )
 		{
 			List<Integer> result = GameController.getInstance().moveAction(currentTurn, GameScreen.getInstance(MainFrame.WIDTH, MainFrame.HEIGHT, num_players));
 			cardId = result.get(0);
@@ -287,10 +387,11 @@ public class GameScreen
 			hasRolled = !hasRolled;
 			repaint();
 		}
-		if (didClickNextTurn( x, y ))
+		else if (didClickNextTurn( x, y ))
 		{
 			GameController.getInstance().nextTurn(GameScreen.getInstance(MainFrame.WIDTH, MainFrame.HEIGHT, num_players));
 			hasRolled = !hasRolled;
+			GameController.getInstance().resetHasBought(GameScreen.getInstance(MainFrame.WIDTH, MainFrame.HEIGHT, num_players));
 			repaint();
 		}
 	}
@@ -331,6 +432,12 @@ public class GameScreen
 	}
 
 	@Override
+	public void notifyHasBought(boolean hasBought) {
+		GameScreen.hasBought = hasBought;
+		
+	}
+
+	@Override
 	public void paintComponent( final Graphics g )
 	{
 		super.paintComponent( g );
@@ -344,6 +451,10 @@ public class GameScreen
 		drawDice( g2d );
 		drawNextTurn( g2d );
 		displayPlayersMoney(playerMoney, g2d);
+		drawBuyTileButton(g2d);
+		drawBuyHouseButton(g2d);
+		drawBuyHotelButton(g2d);
+		drawMessage(g2d);
 
 		this.graphics = g.create();
 	}
@@ -368,4 +479,7 @@ public class GameScreen
 
 	private boolean hasRolled;
 
+	private static boolean hasBought;
+
+	private String message;
 }

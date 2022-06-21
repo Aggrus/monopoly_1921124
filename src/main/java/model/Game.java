@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -52,6 +53,7 @@ public class Game
 
 	private Game()
 	{
+		turn = 0;
 		createEmptyDeck();
 		setPlayerList( new ArrayList<Player>(6) );
 		setTiles( new ArrayList<AbstractTile>(40) );
@@ -183,6 +185,7 @@ public class Game
 	{
 		this.observadores.add( o );
 		o.notifyNumPlayers( getNumPlayers() );
+		o.notifyTurn(turn);
 	}
 
 	// implementações do design patter Observer
@@ -198,8 +201,23 @@ public class Game
 	@Override
 	public void update(Observer o) 
 	{
-		o.notifyNumPlayers( getNumPlayers() );
-		
+		Optional<Observer> observerFromList = observadores.stream().filter(obs-> obs.equals(o)).findAny();
+		if (observerFromList.isPresent())
+		{
+			o.notifyNumPlayers( getNumPlayers() );
+			o.notifyTurn(turn);
+		}
+	}
+
+	public void updateAll()
+	{
+		observadores.forEach(o -> update(o));
+	} 
+
+	public boolean hasObservver(Observer o)
+	{
+		Optional<Observer> observerFromList = observadores.stream().filter(obs-> obs.equals(o)).findAny();
+		return observerFromList.isPresent();
 	}
 
 	public static void loadGame(String file)

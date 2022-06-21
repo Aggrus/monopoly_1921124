@@ -47,6 +47,8 @@ public class GameScreen
 		GameScreen.playerMoney = new ArrayList<Long>( 6 );
 		GameScreen.prisionTimes = new ArrayList<Integer>( 6 );
 		GameScreen.playerPositions = new ArrayList<Integer>( 6 );
+		this.dice = new ArrayList<Integer>();
+		this.hasRolled = false;
 		while ( GameScreen.playerPositions.size() < num_players )
 		{
 			GameScreen.playerPositions.add( 0 );
@@ -61,7 +63,7 @@ public class GameScreen
 		if ( game_screen == null )
 		{
 			game_screen = new GameScreen( w, h, numPLayers );
-			GameController.getInstance().createPlayers();
+			GameController.getInstance().createPlayers(GameScreen.getInstance(MainFrame.WIDTH, MainFrame.HEIGHT, num_players));
 		}
 		return game_screen;
 	}
@@ -70,7 +72,14 @@ public class GameScreen
 	{
 		final boolean xBound = ( ( x >= 700 ) && ( x <= 1000 ) );
 		final boolean yBound = ( ( y >= 30 ) && ( y <= 80 ) );
-		return xBound && yBound;
+		return xBound && yBound && !hasRolled;
+	}
+
+	private boolean didClickNextTurn( final int x, final int y )
+	{
+		final boolean xBound = ( ( x >= 700 ) && ( x <= 1000 ) );
+		final boolean yBound = ( ( y >= 500 ) && ( y <= 550 ) );
+		return xBound && yBound && hasRolled;
 	}
 
 	// Desenha o Tabuleiro e o Background na tela
@@ -87,7 +96,7 @@ public class GameScreen
 				null );
 	}
 
-	private void drawPlayers( final Graphics g )
+	public void drawPlayers( final Graphics g )
 	{
 		Integer index = 0;
 		for ( final Image player : this.player_imgs )
@@ -103,12 +112,32 @@ public class GameScreen
 		if (cardId != null)
 		{
 			g.drawImage( card_imgs[cardId], 250, 250, 150, 210, null );
+			cardId = null;
 		}
 	}
 
-	private void drawRollDiceButton( final Graphics g )
+	public void displayPlayersMoney(List<Long> playerMoney, final Graphics g)
 	{
-		switch ( currentTurn )
+		int index = 0;
+		g.setColor( Color.LIGHT_GRAY );
+		g.fillRect( 700, (200 +  30*index), 300, 30*playerMoney.size() + 30);
+		for (Long money : playerMoney)
+		{
+			setColorByTurn(g, index);
+			g.setFont( g.getFont().deriveFont( g.getFont().getStyle(), 20 ) );
+			String playerTag = String.format("Jogador %d: ",index+1);
+			g.drawChars( playerTag.toCharArray(), 0, playerTag.length(), 750, (230 +  30*index));
+			g.setColor( Color.BLACK );
+			String moneyString = "R$ " + money.toString() + ",00";
+			g.drawChars( moneyString.toCharArray(), 0, moneyString.length(), 870, (230 +  30*index));
+			index++;
+		}
+		System.out.printf("money: %d\n", playerMoney.get(currentTurn));
+	}
+
+	private void setColorByTurn(Graphics g, Integer turn)
+	{
+		switch ( GameController.getInstance().getColorIndexByPlayerTurn(turn))
 		{
 			case 0 :
 			{
@@ -122,7 +151,7 @@ public class GameScreen
 			}
 			case 2 :
 			{
-				g.setColor( Color.ORANGE );
+				g.setColor( Color.getHSBColor((float)0.084, (float)1.0, (float)1.0) );
 				break;
 			}
 			case 3 :
@@ -137,16 +166,49 @@ public class GameScreen
 			}
 			case 5 :
 			{
-				g.setColor( Color.GRAY );
+				g.setColor( Color.DARK_GRAY );
 				break;
 			}
 		}
+	}
 
-		g.drawRect( 700, 30, 300, 50 );
-		g.fillRect( 700, 30, 300, 50 );
-		g.setColor( Color.WHITE );
-		g.setFont( g.getFont().deriveFont( g.getFont().getStyle(), 20 ) );
-		g.drawChars( "Rolar dados".toCharArray(), 0, 11, 800, 60 );
+	private void drawRollDiceButton( final Graphics g )
+	{	
+		if (!hasRolled)
+		{
+			setColorByTurn( g, currentTurn );
+			g.drawRect( 700, 30, 300, 50 );
+			g.fillRect( 700, 30, 300, 50 );
+			g.setColor( Color.WHITE );
+			g.setFont( g.getFont().deriveFont( g.getFont().getStyle(), 20 ) );
+			g.drawChars( "Rolar dados".toCharArray(), 0, 11, 800, 60 );
+		}
+	}
+
+	private void drawNextTurn( final Graphics g )
+	{	
+		if (hasRolled)
+		{
+			setColorByTurn( g, currentTurn );
+			g.drawRect( 700, 500, 300, 50 );
+			g.fillRect( 700, 500, 300, 50 );
+			g.setColor( Color.WHITE );
+			g.setFont( g.getFont().deriveFont( g.getFont().getStyle(), 20 ) );
+			g.drawChars( "Encerrar Turno".toCharArray(), 0, 14, 780, 530 );
+		}
+	}
+
+	private void drawDice( final Graphics g )
+	{
+		if (hasRolled)
+		{
+			int index = 0;
+			for (Integer result : dice)
+			{
+				g.drawImage( dice_imgs[result - 1], 700 + 50*index, 120, 50, 50, null );
+				index++;
+			}
+		}
 	}
 
 	// Importa as imagens que serão utilizadas ao longo do jogo
@@ -219,12 +281,16 @@ public class GameScreen
 		System.out.printf( "x = %d\ny = %d\n", x, y );
 		if ( didClickRollDice( x, y ) )
 		{
-			System.out.printf( "Clicou em rolar dados\n" );
-			List<Integer> dice = ApplyRules.moveRollDice( currentTurn );
-			System.out.printf("Dados: ");
-			dice.stream().forEach(dado -> System.out.printf("%d, ",dado));
-			cardId = ApplyRules.applyTileRuleToPlayerById( currentTurn );
-			System.out.println( "\nmoney: " + playerMoney + "positions: " + playerPositions + "\n\n" );
+			List<Integer> result = GameController.getInstance().moveAction(currentTurn, GameScreen.getInstance(MainFrame.WIDTH, MainFrame.HEIGHT, num_players));
+			cardId = result.get(0);
+			dice = result.subList(1, result.size());
+			hasRolled = !hasRolled;
+			repaint();
+		}
+		if (didClickNextTurn( x, y ))
+		{
+			GameController.getInstance().nextTurn(GameScreen.getInstance(MainFrame.WIDTH, MainFrame.HEIGHT, num_players));
+			hasRolled = !hasRolled;
 			repaint();
 		}
 	}
@@ -250,7 +316,12 @@ public class GameScreen
 	@Override
 	public void notifyNumPlayers( final Integer numPlayers )
 	{
-		// TODO Auto-generated method stub
+		GameScreen.num_players = numPlayers;
+	}
+
+	@Override
+	public void notifyTurn(Integer turn) {
+		GameScreen.currentTurn = turn;		
 	}
 
 	@Override
@@ -270,6 +341,9 @@ public class GameScreen
 		drawPlayers( g2d );
 		drawCards( g2d );
 		drawRollDiceButton( g2d );
+		drawDice( g2d );
+		drawNextTurn( g2d );
+		displayPlayersMoney(playerMoney, g2d);
 
 		this.graphics = g.create();
 	}
@@ -289,5 +363,9 @@ public class GameScreen
 	private Integer cardId;
 
 	private Image[] property_imgs = new Image[22];
+
+	private List<Integer> dice;
+
+	private boolean hasRolled;
 
 }

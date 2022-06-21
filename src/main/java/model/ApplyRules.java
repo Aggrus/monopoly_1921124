@@ -3,9 +3,8 @@ package model;
 import java.util.ArrayList;
 import java.util.List;
 
+import Controller.Observer.Observer;
 import Exception.IllegalRuleException;
-import View.GameScreen;
-import View.MainFrame;
 import enums.BuildingEnum;
 import enums.PlayerColorEnum;
 import enums.TileColorEnum;
@@ -535,7 +534,7 @@ public class ApplyRules
 					Long.valueOf( 150 ) ) );
 	}
 
-	public static void createPlayers()
+	public static void createPlayers( Observer o)
 	{
 		if ( Game.getPlayerList().size() == 0 )
 		{
@@ -549,14 +548,14 @@ public class ApplyRules
 				playerSize++;
 				players
 					.get( playerSize - 1 )
-					.add( GameScreen.getInstance( MainFrame.WIDTH, MainFrame.HEIGHT, numPlayers ) );
+					.add( o );
 			}
 			// Instantiate a list of players on position 0
 			Game.setPlayerList( players );
 		}
 	}
 
-	public static List<Integer> forceMove( final Integer playerId, final List<Integer> simulatedDice )
+	public static List<Integer> forceMove( final Integer playerId, final List<Integer> simulatedDice, Observer o )
 	{
 		final Player player = Game.getPlayerList().get( playerId );
 		player.setInPrision( simulatedDice.size() > 6 );
@@ -564,7 +563,7 @@ public class ApplyRules
 		{
 			simulatedDice.clear();
 		}
-		movePlayer( player, simulatedDice );
+		movePlayer( player, simulatedDice, o );
 		return simulatedDice;
 	}
 
@@ -580,7 +579,7 @@ public class ApplyRules
 		return boardPosition;
 	}
 
-	private static void movePlayer( final Player player, final List<Integer> dice )
+	private static void movePlayer( final Player player, final List<Integer> dice, Observer o )
 	{
 		if ( player.isInPrision() )
 		{
@@ -602,11 +601,11 @@ public class ApplyRules
 		}
 		for ( final Player players : Game.getPlayerList() )
 		{
-			players.update( GameScreen.getInstance( MainFrame.WIDTH, MainFrame.HEIGHT, Game.getNumPlayers() ) );
+			players.update( o );
 		}
 	}
 
-	public static List<Integer> moveRollDice( final Integer playerId )
+	public static List<Integer> moveRollDice( final Integer playerId, Observer o )
 	{
 		final List<Integer> diceRoll = Dice.getInstance().moveRoll();
 		final Player player = Game.getPlayerList().get( playerId );
@@ -615,8 +614,13 @@ public class ApplyRules
 		{
 			player.setInPrision( diceRoll.size() > 6 );
 		}
-		movePlayer( player, new ArrayList<>(diceRoll) );
+		movePlayer( player, new ArrayList<>(diceRoll), o );
 		return diceRoll;
+	}
+
+	public static Integer getColorIndexByPlayerTurn(Integer playerTurn)
+	{
+		return Game.getPlayerList().get(playerTurn).getColor().getIndex();
 	}
 
 	public static void sellBuilding( final Integer playerId, final Integer propertyPos )
@@ -640,6 +644,20 @@ public class ApplyRules
 		sellingTile.setOwner( null );
 	}
 
+	public static void nextTurn(Observer o)
+	{
+		Game.setTurn((Game.getTurn() + 1) % Game.getNumPlayers());
+		if (Game.getInstance().hasObservver(o))
+		{
+			Game.getInstance().update(o);
+		}
+		else
+		{
+			Game.getInstance().add(o);
+		}
+		
+	}
+
 	public static void shuffleDeck()
 	{
 		final List<AbstractCard> deck = Game.getCards();
@@ -660,6 +678,7 @@ public class ApplyRules
 		deck.add( new DefaultCard( id, true, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 50 ) ) );
 		id++;
 		deck.add( new DefaultCard( id, true, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 50 ) ) );
+		//^6 -v7
 		id++;
 		deck.add( new DefaultCard( id, true, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 100 ) ) );
 		id++;
@@ -672,8 +691,7 @@ public class ApplyRules
 		deck.add( new StealCard( id, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 50 ) ) );
 		id++;
 		deck.add( new DefaultCard( id, true, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 45 ) ) );
-		id++;
-		deck.add( new DefaultCard( id, true, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 30 ) ) );
+		//^12 -v13
 		id++;
 		deck.add( new DefaultCard( id, true, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 100 ) ) );
 		id++;
@@ -686,8 +704,11 @@ public class ApplyRules
 		deck.add( new DefaultCard( id, false, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 25 ) ) );
 		id++;
 		deck.add( new DefaultCard( id, false, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 45 ) ) );
+		//^18 -v19
 		id++;
 		deck.add( new DefaultCard( id, false, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 30 ) ) );
+		id++;
+		deck.add( new DefaultCard( id, false, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 100 ) ) );
 		id++;
 		deck.add( new DefaultCard( id, false, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 100 ) ) );
 		id++;
@@ -696,6 +717,7 @@ public class ApplyRules
 		deck.add( new PrisionCard( id, false, contextPath + "chance" + (id+1) + ".png" ) );
 		id++;
 		deck.add( new DefaultCard( id, false, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 30 ) ) );
+		//^24 -v25
 		id++;
 		deck.add( new DefaultCard( id, false, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 50 ) ) );
 		id++;

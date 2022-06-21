@@ -50,5 +50,10 @@ public class MainFrame extends JFrame implements Observer{
         System.out.printf("num_players = %d\n", num_players);
         ScreenManager();
     }
+
+    @Override
+	public void notifyTurn(Integer turn) 
+    {
+	}
 }
 

@@ -151,19 +151,30 @@ class MenuScreen extends JPanel implements MouseListener {
         
         if (new_game == true) { 
             if (x >= initPosX && x <= initPosX + boxWidth) {
-                if (y >= initPosY && y <= initPosY + boxHeight) {    // Clique na caixa de opção de 2 jogadores
+                Integer bottomFirstBox = initPosY + boxHeight;
+                Integer topSecondBox = bottomFirstBox + boxBufferHeight;
+                Integer bottomSecondBox = topSecondBox + boxHeight;
+                Integer topThirdBox = bottomSecondBox + boxBufferHeight;
+                Integer bottomThirdBox = topThirdBox + boxHeight;
+                Integer topFourthBox = bottomThirdBox + boxBufferHeight;
+                Integer bottomFourthBox = topFourthBox + boxHeight;
+                Integer topFifthBox = bottomFourthBox + boxBufferHeight;
+                Integer bottomFifthBox = topFifthBox + boxHeight;
+                
+
+                if (y >= initPosY && y <= bottomFirstBox) {    // Clique na caixa de opção de 2 jogadores
                     MenuController.getInstance().set_num_players(2);
                 }
-                else if (y >= initPosY + boxHeight + boxBufferHeight && y <= initPosY + 2*boxHeight + boxBufferHeight) {    // Clique na caixa de opção de 3 jogadores
+                else if (y >= topSecondBox && y <= bottomSecondBox) {    // Clique na caixa de opção de 3 jogadores
                     MenuController.getInstance().set_num_players(3);
                 }
-                else if (y >= initPosY + 2*(boxHeight + boxBufferHeight) && y <= initPosY + 3*boxHeight + 2*boxBufferHeight) {    // Clique na caixa de opção de 4 jogadores
+                else if (y >= topThirdBox && y <= bottomThirdBox) {    // Clique na caixa de opção de 4 jogadores
                     MenuController.getInstance().set_num_players(4);
                 }
-                else if (y >= initPosY + 3*(boxHeight + boxBufferHeight) && y <= initPosY + 4*boxHeight + 3*boxBufferHeight + boxHeight) {    // Clique na caixa de opção de 5 jogadores
+                else if (y >= topFourthBox && y <= bottomFourthBox) {    // Clique na caixa de opção de 5 jogadores
                     MenuController.getInstance().set_num_players(5);
                 }
-                else if (y >= initPosY + 4*(boxHeight + boxBufferHeight) && y <= initPosY + 5*boxHeight + 4*boxBufferHeight + boxHeight) {    // Clique na caixa de opção de 6 jogadores
+                else if (y >= topFifthBox && y <= bottomFifthBox) {    // Clique na caixa de opção de 6 jogadores
                     MenuController.getInstance().set_num_players(6);
                 }
             }

@@ -213,6 +213,12 @@ abstract class AbstractTile implements Observable
 		}
 	}
 
+	public boolean hasObservver(Observer o)
+	{
+		Optional<TileObserver> observerFromList = observer.stream().filter(obs-> obs.equals(o)).findAny();
+		return observerFromList.isPresent();
+	}
+
 
 	public abstract void tileRule( Integer playerId );
 

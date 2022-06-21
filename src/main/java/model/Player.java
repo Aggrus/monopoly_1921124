@@ -2,6 +2,7 @@ package model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import Controller.Observer.Observable;
@@ -93,6 +94,7 @@ class Player
 			.stream()
 			.filter( tile -> ( ( Property ) tile ).getBuildings().size() > 0 )
 			.collect( Collectors.toList() );
+
 		if ( tilesWithBuildings.size() > 0 )
 		{
 			Long max = ( long ) 0;
@@ -270,12 +272,13 @@ class Player
 		if ( !isInGame() )
 		{
 			Game.getPlayerList().remove( this );
+			Game.setNumPlayers(Game.getPlayerList().size());
 		}
 	}
 
 	public void playerStatus()
 	{
-		while ( ( getMoney() <= 0 ) && isInGame() )
+		if ( ( getMoney() <= 0 ) && isInGame() )
 		{
 			if ( hasTile() )
 			{
@@ -283,7 +286,7 @@ class Player
 			}
 			else
 			{
-				setInGame( false );
+				setInGame( false );			
 			}
 		}
 	}
@@ -400,6 +403,11 @@ class Player
 		observerFromList.notifyMoney( this.money, this.color.getIndex() );
 		observerFromList.notifyPrisionTime( this.prisionTime, this.color.getIndex() );
 
+	}
+
+	public boolean hasObservver(Observer o)
+	{	
+		return observer.stream().anyMatch(obs-> obs.equals((PlayerObserver)o));
 	}
 
 	public List<PlayerObserver> getObserver() {

@@ -56,6 +56,7 @@ class DrawCardTile
 		final Random card = new Random();
 		final AbstractCard curCard = deck.get( card.nextInt( Game.getCards().size() - 1 ) );
 		curCard.cardRule( player );
+		player.update(player.getObserver().get(player.getObserver().size() -1 ));
 		setDrawnCard( curCard );
 		deck.remove( curCard );
 		if ( deck.isEmpty() )

@@ -89,7 +89,7 @@ class CompanyTile
 	public void tileRule( final Integer playerId )
 	{
 		Player player = Game.getPlayerList().get(playerId);
-		if ( !player.equals( getOwner() ) )
+		if ( !player.equals( getOwner() ) && getOwner() != null)
 		{
 			final Integer rollTotal = Dice.simpleRoll().stream().mapToInt( r -> r ).sum();
 			player.loseMoney( Long.valueOf( rollTotal * getMultiplier() ) );

@@ -154,19 +154,30 @@ public class ApplyRules
 		final Player player = Game.getPlayerList().get( playerId );
 		if ( player.isInPrision() )
 		{
-			player.setInPrision( !( roll.size() > 2 ) );
+			boolean isFree = ( roll.size() > 2 );
+			player.setInPrision( !isFree );
+			if (!isFree)
+			{
+				player.addPriosionTime();
+			}
+			else
+			{
+				player.resetPrisionTime();
+			}
 		}
 
 		if ( player.isInPrision() && player.getPrisionTime().equals( 4 ) )
 		{
 			player.loseMoney( Long.valueOf( 50 ) );
 			player.setInPrision( false );
+			player.resetPrisionTime();
 		}
 
 		if ( player.isFreeRide() && player.isInPrision() )
 		{
 			player.setFreeRide( false );
 			player.setInPrision( false );
+			player.resetPrisionTime();
 		}
 		return !player.isInPrision();
 	}
@@ -571,6 +582,10 @@ public class ApplyRules
 
 	private static void movePlayer( final Player player, final List<Integer> dice )
 	{
+		if ( player.isInPrision() )
+		{
+			dice.clear();
+		}
 		final Integer moveSum = dice.stream().mapToInt( Integer::intValue ).sum();
 		if ( !player.isInPrision() )
 		{
@@ -595,12 +610,12 @@ public class ApplyRules
 	{
 		final List<Integer> diceRoll = Dice.getInstance().moveRoll();
 		final Player player = Game.getPlayerList().get( playerId );
-		player.setInPrision( diceRoll.size() > 6 );
-		if ( player.isInPrision() )
+		
+		if ( !player.isInPrision() )
 		{
-			diceRoll.clear();
+			player.setInPrision( diceRoll.size() > 6 );
 		}
-		movePlayer( player, diceRoll );
+		movePlayer( player, new ArrayList<>(diceRoll) );
 		return diceRoll;
 	}
 
@@ -633,66 +648,66 @@ public class ApplyRules
 			deck.clear();
 		}
 		final String contextPath = "../data/sorteReves";
-		Integer id = 1;
-		deck.add( new DefaultCard( id, true, contextPath + "chance" + id + ".png", Long.valueOf( 25 ) ) );
+		Integer id = 0;
+		deck.add( new DefaultCard( id, true, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 25 ) ) );
 		id++;
-		deck.add( new DefaultCard( id, true, contextPath + "chance" + id + ".png", Long.valueOf( 150 ) ) );
+		deck.add( new DefaultCard( id, true, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 150 ) ) );
 		id++;
-		deck.add( new DefaultCard( id, true, contextPath + "chance" + id + ".png", Long.valueOf( 80 ) ) );
+		deck.add( new DefaultCard( id, true, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 80 ) ) );
 		id++;
-		deck.add( new DefaultCard( id, true, contextPath + "chance" + id + ".png", Long.valueOf( 200 ) ) );
+		deck.add( new DefaultCard( id, true, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 200 ) ) );
 		id++;
-		deck.add( new DefaultCard( id, true, contextPath + "chance" + id + ".png", Long.valueOf( 50 ) ) );
+		deck.add( new DefaultCard( id, true, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 50 ) ) );
 		id++;
-		deck.add( new DefaultCard( id, true, contextPath + "chance" + id + ".png", Long.valueOf( 50 ) ) );
+		deck.add( new DefaultCard( id, true, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 50 ) ) );
 		id++;
-		deck.add( new DefaultCard( id, true, contextPath + "chance" + id + ".png", Long.valueOf( 100 ) ) );
+		deck.add( new DefaultCard( id, true, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 100 ) ) );
 		id++;
-		deck.add( new DefaultCard( id, true, contextPath + "chance" + id + ".png", Long.valueOf( 100 ) ) );
+		deck.add( new DefaultCard( id, true, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 100 ) ) );
 		id++;
-		deck.add( new FreeRideCard( id, contextPath + "chance" + id + ".png" ) );
+		deck.add( new FreeRideCard( id, contextPath + "chance" + (id+1) + ".png" ) );
 		id++;
-		deck.add( new StartPosCard( id, contextPath + "chance" + id + ".png", Long.valueOf( 200 ) ) );
+		deck.add( new StartPosCard( id, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 200 ) ) );
 		id++;
-		deck.add( new StealCard( id, contextPath + "chance" + id + ".png", Long.valueOf( 50 ) ) );
+		deck.add( new StealCard( id, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 50 ) ) );
 		id++;
-		deck.add( new DefaultCard( id, true, contextPath + "chance" + id + ".png", Long.valueOf( 45 ) ) );
+		deck.add( new DefaultCard( id, true, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 45 ) ) );
 		id++;
-		deck.add( new DefaultCard( id, true, contextPath + "chance" + id + ".png", Long.valueOf( 30 ) ) );
+		deck.add( new DefaultCard( id, true, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 30 ) ) );
 		id++;
-		deck.add( new DefaultCard( id, true, contextPath + "chance" + id + ".png", Long.valueOf( 100 ) ) );
+		deck.add( new DefaultCard( id, true, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 100 ) ) );
 		id++;
-		deck.add( new DefaultCard( id, true, contextPath + "chance" + id + ".png", Long.valueOf( 100 ) ) );
+		deck.add( new DefaultCard( id, true, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 100 ) ) );
 		id++;
-		deck.add( new DefaultCard( id, true, contextPath + "chance" + id + ".png", Long.valueOf( 20 ) ) );
+		deck.add( new DefaultCard( id, true, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 20 ) ) );
 		id++;
-		deck.add( new DefaultCard( id, false, contextPath + "chance" + id + ".png", Long.valueOf( 15 ) ) );
+		deck.add( new DefaultCard( id, false, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 15 ) ) );
 		id++;
-		deck.add( new DefaultCard( id, false, contextPath + "chance" + id + ".png", Long.valueOf( 25 ) ) );
+		deck.add( new DefaultCard( id, false, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 25 ) ) );
 		id++;
-		deck.add( new DefaultCard( id, false, contextPath + "chance" + id + ".png", Long.valueOf( 45 ) ) );
+		deck.add( new DefaultCard( id, false, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 45 ) ) );
 		id++;
-		deck.add( new DefaultCard( id, false, contextPath + "chance" + id + ".png", Long.valueOf( 30 ) ) );
+		deck.add( new DefaultCard( id, false, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 30 ) ) );
 		id++;
-		deck.add( new DefaultCard( id, false, contextPath + "chance" + id + ".png", Long.valueOf( 100 ) ) );
+		deck.add( new DefaultCard( id, false, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 100 ) ) );
 		id++;
-		deck.add( new DefaultCard( id, false, contextPath + "chance" + id + ".png", Long.valueOf( 40 ) ) );
+		deck.add( new DefaultCard( id, false, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 40 ) ) );
 		id++;
-		deck.add( new PrisionCard( id, false, contextPath + "chance" + id + ".png" ) );
+		deck.add( new PrisionCard( id, false, contextPath + "chance" + (id+1) + ".png" ) );
 		id++;
-		deck.add( new DefaultCard( id, false, contextPath + "chance" + id + ".png", Long.valueOf( 30 ) ) );
+		deck.add( new DefaultCard( id, false, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 30 ) ) );
 		id++;
-		deck.add( new DefaultCard( id, false, contextPath + "chance" + id + ".png", Long.valueOf( 50 ) ) );
+		deck.add( new DefaultCard( id, false, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 50 ) ) );
 		id++;
-		deck.add( new DefaultCard( id, false, contextPath + "chance" + id + ".png", Long.valueOf( 25 ) ) );
+		deck.add( new DefaultCard( id, false, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 25 ) ) );
 		id++;
-		deck.add( new DefaultCard( id, false, contextPath + "chance" + id + ".png", Long.valueOf( 30 ) ) );
+		deck.add( new DefaultCard( id, false, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 30 ) ) );
 		id++;
-		deck.add( new DefaultCard( id, false, contextPath + "chance" + id + ".png", Long.valueOf( 45 ) ) );
+		deck.add( new DefaultCard( id, false, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 45 ) ) );
 		id++;
-		deck.add( new DefaultCard( id, false, contextPath + "chance" + id + ".png", Long.valueOf( 50 ) ) );
+		deck.add( new DefaultCard( id, false, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 50 ) ) );
 		id++;
-		deck.add( new DefaultCard( id, false, contextPath + "chance" + id + ".png", Long.valueOf( 50 ) ) );
+		deck.add( new DefaultCard( id, false, contextPath + "chance" + (id+1) + ".png", Long.valueOf( 50 ) ) );
 
 	}
 

@@ -402,6 +402,10 @@ class Player
 
 	}
 
+	public List<PlayerObserver> getObserver() {
+		return observer;
+	}
+
 	private Integer boardPosition;
 
 	private PlayerColorEnum color;

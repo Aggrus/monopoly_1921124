@@ -228,6 +228,6 @@ abstract class AbstractTile implements Observable
 
 	private Long value;
 
-	List<TileObserver> observer;
+	protected List<TileObserver> observer;
 
 }

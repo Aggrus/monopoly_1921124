@@ -276,7 +276,7 @@ class Property
 	public void tileRule( final Integer playerId )
 	{
 		Player player = Game.getPlayerList().get(playerId);
-		if ( !player.equals( getOwner() ) )
+		if ( !player.equals( getOwner() ) && getOwner() != null)
 		{
 			player.loseMoney( getRent() );
 		}

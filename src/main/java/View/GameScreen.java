@@ -98,6 +98,14 @@ public class GameScreen
 		}
 	}
 
+	private void drawCards( final Graphics g )
+	{
+		if (cardId != null)
+		{
+			g.drawImage( card_imgs[cardId], 250, 250, 150, 210, null );
+		}
+	}
+
 	private void drawRollDiceButton( final Graphics g )
 	{
 		switch ( currentTurn )
@@ -212,10 +220,12 @@ public class GameScreen
 		if ( didClickRollDice( x, y ) )
 		{
 			System.out.printf( "Clicou em rolar dados\n" );
-			ApplyRules.moveRollDice( currentTurn );
-			ApplyRules.applyTileRuleToPlayerById( currentTurn );
-			System.out.printf( "money: " + playerMoney + "positions: " + playerPositions + "\n\n" );
-			paintComponent( this.graphics );
+			List<Integer> dice = ApplyRules.moveRollDice( currentTurn );
+			System.out.printf("Dados: ");
+			dice.stream().forEach(dado -> System.out.printf("%d, ",dado));
+			cardId = ApplyRules.applyTileRuleToPlayerById( currentTurn );
+			System.out.println( "\nmoney: " + playerMoney + "positions: " + playerPositions + "\n\n" );
+			repaint();
 		}
 	}
 
@@ -252,15 +262,16 @@ public class GameScreen
 	@Override
 	public void paintComponent( final Graphics g )
 	{
-		this.graphics = g.create();
 		super.paintComponent( g );
 		final Graphics2D g2d = ( Graphics2D ) g;
 
 		import_images();
 		draw_basic_board( g2d );
 		drawPlayers( g2d );
+		drawCards( g2d );
 		drawRollDiceButton( g2d );
 
+		this.graphics = g.create();
 	}
 
 	private Image background_img, board_img;
@@ -274,6 +285,8 @@ public class GameScreen
 	Graphics graphics;
 
 	private Image[] player_imgs;
+
+	private Integer cardId;
 
 	private Image[] property_imgs = new Image[22];
 

@@ -139,12 +139,9 @@ class Property
 		{
 			if ( !canBuildHotel() )
 			{
-				canAddBuilding = canAddBuilding && canBuildHotel();
+				canAddBuilding = canBuildHotel();
+				throw new IllegalRuleException( "Não pode adicionar construção!" );
 			}
-		}
-		else
-		{
-			throw new IllegalRuleException( "Não pode adicionar construção!" );
 		}
 		return canAddBuilding;
 	}

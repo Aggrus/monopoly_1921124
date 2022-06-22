@@ -105,7 +105,7 @@ public class GameScreen
 				null );
 	}
 
-	public void drawPlayers( final Graphics g )
+	private void drawPlayers( final Graphics g )
 	{
 		Integer index = 0;
 		for ( final Image player : this.player_imgs )
@@ -125,7 +125,7 @@ public class GameScreen
 		}
 	}
 
-	public void drawForcedDice( final Graphics g )
+	private void drawForcedDice( final Graphics g )
 	{
 		int fontSize = 20;
 		int initY = 200;
@@ -140,7 +140,7 @@ public class GameScreen
 		g.drawChars( boxTitle.toCharArray(), 0, boxTitle.length(), initX + (boxTitle.length()*fontSize)/4, (initY - fontSize/2));
 		g.drawRect( initX, initY, 320, 80);
 	}
-	public void drawSubmitForcedDice( final Graphics g)
+	private void drawSubmitForcedDice( final Graphics g)
 	{
 		int fontSize = 16;
 		int initY = 200;
@@ -152,7 +152,7 @@ public class GameScreen
 		
 	}
 
-	public void displayPlayersMoney(List<Long> playerMoney, final Graphics g)
+	private void displayPlayersMoney(List<Long> playerMoney, final Graphics g)
 	{
 		int index = 0;
 		g.setColor( Color.LIGHT_GRAY );
@@ -214,7 +214,8 @@ public class GameScreen
 	{
 		final boolean xBound = ( ( x >= 700 ) && ( x <= 1000 ) );
 		final boolean yBound = ( ( y >= 30 ) && ( y <= 80 ) );
-		return xBound && yBound && hasRolled && !hasBought;
+		final boolean canBuyTile = GameController.getInstance().canBuyTile(playerPositions.get(currentTurn));
+		return xBound && yBound && hasRolled && !hasBought && canBuyTile;
 	}
 
 	private void drawBuyTileButton( final Graphics g )
@@ -234,17 +235,19 @@ public class GameScreen
 
 	private boolean didClickBuyHouseButton(final int x, final int y)
 	{
-		final boolean xBound = ( ( x >= 650 ) && ( x <= (("Comprar casa!".length() + 1)*20)) );
+		final boolean xBound = ( ( x >= 650 ) && ( x <= 650 + (("Comprar casa!".length())*20)) );
 		final boolean yBound = ( ( y >= 30 ) && ( y <= 80 ) );
-		return xBound && yBound && hasRolled && !hasBought;
+		final boolean canBuyHouse = GameController.getInstance().canBuyHouse(playerColors.get(currentTurn), playerPositions.get(currentTurn));
+		return xBound && yBound && hasRolled && !hasBought && canBuyHouse;
 	}
 
 	private boolean didClickBuyHotelButton(final int x, final int y)
 	{
-		int firstButtonLength = 650 + (("Comprar casa!".length() + 1)*20);	
-		final boolean xBound = ( ( x >= firstButtonLength ) && ( x <= (firstButtonLength + (("Comprar hotel!".length() + 1)*20))) );
+		int firstButtonLength = 650 + (("Comprar casa!".length())*20);	
+		final boolean xBound = ( ( x >= firstButtonLength ) && ( x <= (firstButtonLength + (("Comprar hotel!".length() - 1)*20))) );
 		final boolean yBound = ( ( y >= 30 ) && ( y <= 80 ) );
-		return xBound && yBound && hasRolled && !hasBought;
+		final boolean canBuyHotel = GameController.getInstance().canBuyHotel(playerColors.get(currentTurn), playerPositions.get(currentTurn));
+		return xBound && yBound && hasRolled && !hasBought && canBuyHotel;
 	}
 
 	private void drawBuyHouseButton( final Graphics g )
@@ -253,7 +256,7 @@ public class GameScreen
 		{
 			message = "Comprar casa!";	
 			Integer fontSize = 20;
-			int widthBox = (message.length()) * fontSize;
+			int widthBox = (message.length() - 1) * fontSize;
 			g.setColor( Color.WHITE );
 			g.fillRect( 650, 30, widthBox, 50 );
 			g.setColor( Color.BLACK );			
@@ -270,16 +273,16 @@ public class GameScreen
 		if (hasRolled && GameController.getInstance().canBuyHotel(currentTurn, playerPositions.get(currentTurn)) && !hasBought)
 		{
 			Integer fontSize = 20;
-			Integer width = (message.length() ) * fontSize;
+			Integer width = ("Comprar casa!".length() - 1) * fontSize;
 			message = "Comprar hotel!";
-			Integer newWidth = (message.length() ) * fontSize;
+			Integer newWidth = (message.length() - 1) * fontSize;
 			g.setColor( Color.WHITE );
-			g.fillRect( 650 + width, 30, newWidth, 50 );
+			g.fillRect( 650 + width + 10, 30, newWidth, 50 );
 			g.setColor( Color.BLACK );
-			g.drawRect( 650 + width, 30, newWidth, 50 );
+			g.drawRect( 650 + width + 10, 30, newWidth, 50 );
 			setColorByTurn( g, currentTurn );
 			g.setFont( g.getFont().deriveFont( g.getFont().getStyle(), fontSize ) );		
-			g.drawChars( message.toCharArray(), 0, message.length(), 650 + width + newWidth/2, 60 );
+			g.drawChars( message.toCharArray(), 0, message.length(), 650 + width + newWidth/4, 60 );
 			message = "";
 		}
 	}

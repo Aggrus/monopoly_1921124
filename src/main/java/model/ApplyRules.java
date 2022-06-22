@@ -114,6 +114,7 @@ public class ApplyRules
 			response = "Falha! Não pode comprar construção aqui!";
 		}
 		player.update(o);
+		Game.setHasBought(true);
 		Game.getInstance().update(o);
 		return response;
 	}
@@ -217,7 +218,7 @@ public class ApplyRules
 		final Player player = Game.getPlayerList().get( playerId );
 		if ( player.isInPrision() )
 		{
-			boolean isFree = ( roll.size() > 2 );
+			boolean isFree = ( roll.size() > 2 ) && (player.getPrisionTime() > 0);
 			player.setInPrision( !isFree );
 			if (!isFree)
 			{
@@ -624,6 +625,7 @@ public class ApplyRules
 	{
 		final Player player = Game.getPlayerList().get( playerId );
 		player.setInPrision( simulatedDice.size() > 6 );
+		Dice.setDie(simulatedDice);
 		if ( player.isInPrision() )
 		{
 			simulatedDice.clear();

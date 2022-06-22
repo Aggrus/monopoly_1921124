@@ -2,6 +2,7 @@ package model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import Controller.Observer.Observable;
@@ -71,6 +72,7 @@ class Player
 		this.observer.get( this.observer.size() - 1 ).nofityBoardPosition( this.boardPosition, this.color.getIndex() );
 		this.observer.get( this.observer.size() - 1 ).notifyMoney( this.money, this.color.getIndex() );
 		this.observer.get( this.observer.size() - 1 ).notifyPrisionTime( this.prisionTime, this.color.getIndex() );
+		this.observer.get( this.observer.size() - 1 ).notifyColor(color.getIndex(), this.color.getIndex());
 	}
 
 	public void addPriosionTime()
@@ -107,7 +109,7 @@ class Player
 					maxBuildingCostTile = new Property( property );
 				}
 			}
-			loseMoney( -maxBuildingCostTile.sellBuilding() );
+			loseMoney( -(9 * maxBuildingCostTile.sellBuilding())/10 );
 		}
 		else if ( tilesWithBuildings.size() == 0 )
 		{
@@ -122,7 +124,7 @@ class Player
 					maxCostTile = new CompanyTile( company );
 				}
 			}
-			loseMoney( -maxCostTile.getValue() );
+			loseMoney( -(9 * maxCostTile.getValue())/10 );
 			tilesWithBuildings.get( maxCostTile.getBoardPosition() ).setCanPurchase( true );
 			tilesWithBuildings.get( maxCostTile.getBoardPosition() ).setOwner( null );
 		}
@@ -139,7 +141,7 @@ class Player
 					maxCostTile = new Property( property );
 				}
 			}
-			loseMoney( -maxCostTile.getValue() );
+			loseMoney( -(9 * maxCostTile.getValue())/10 );
 			tilesWithBuildings.get( maxCostTile.getBoardPosition() ).setCanPurchase( true );
 			tilesWithBuildings.get( maxCostTile.getBoardPosition() ).setOwner( null );
 		}
@@ -395,12 +397,16 @@ class Player
 	@Override
 	public void update( final Observer o )
 	{
-		final PlayerObserver observerFromList = ( PlayerObserver ) o;
-
+		final PlayerObserver playerObserver = ( PlayerObserver ) o;
+		Optional <PlayerObserver> observerFromList = observer.stream().filter(pO -> pO.equals(playerObserver)).findAny();
 		// observerFromList.get().notifyFreeRide( this.freeRide , this.color.getIndex());
-		observerFromList.nofityBoardPosition( this.boardPosition, this.color.getIndex() );
-		observerFromList.notifyMoney( this.money, this.color.getIndex() );
-		observerFromList.notifyPrisionTime( this.prisionTime, this.color.getIndex() );
+		if (observerFromList.isPresent())
+		{
+			observerFromList.get().nofityBoardPosition( this.boardPosition, this.color.getIndex() );
+			observerFromList.get().notifyMoney( this.money, this.color.getIndex() );
+			observerFromList.get().notifyPrisionTime( this.prisionTime, this.color.getIndex() );
+			observerFromList.get().notifyColor(color.getIndex(), this.color.getIndex());
+		}
 
 	}
 

@@ -32,6 +32,7 @@ class Dice
 	{
 		diceOne = 0;
 		diceTwo = 0;
+		die = new ArrayList<Integer>();
 	}
 
 	// Get last dice roll
@@ -62,9 +63,9 @@ class Dice
 	}
 
 	// Set last dice roll
-	private static void setDie( final List<Integer> die )
+	public static void setDie( final List<Integer> die )
 	{
-		Dice.die = die;
+		die.forEach(result -> Dice.die.add(result));
 	}
 
 	public static ArrayList<Integer> simpleRoll()

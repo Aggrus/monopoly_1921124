@@ -93,7 +93,6 @@ class Property
 		}
 
 		player.loseMoney( building.getPrice() );
-		Game.setHasBought(true);
 		return didBuy;
 
 	}
@@ -340,7 +339,7 @@ class Property
 	}
 
 	public String genSaveString() {
-		return String.format("casa %d, hotel %d, comprada %b, dono %d, aluguel %d", buildings.size(), hasHotel()?1:0, getCanPurchase(), getOwner().getColor() == null? -1: getOwner().getColor().getIndex(), getRent());
+		return String.format("casa %d, hotel %d, aVenda %b, dono %d, aluguel %d", buildings.size(), hasHotel()?1:0, getCanPurchase(), getOwner() == null? -1: getOwner().getColor().getIndex(), getRent());
 	}
 
 	public void setBuildings(List<Building> buildings) {

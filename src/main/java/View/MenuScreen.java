@@ -185,9 +185,10 @@ class MenuScreen extends JPanel implements MouseListener {
                     new_game = true;
                     repaint();
                 }
-                // else if (y >= 250 && y <= 250 + boxHeight) {    // Clique na caixa de opção de carregar jogo
-                   // futuras operações para carregamento de jogo
-                // }
+                else if (y >= 250 && y <= 250 + boxHeight) {    // Clique na caixa de opção de carregar jogo
+                    MainFrame.getInstance();
+                    SaveGameView.loadGame(GameScreen.getInstance(MainFrame.getInstance().DFLT_WIDTH, MainFrame.getInstance().DFLT_HEIGHT, MainFrame.getNum_players()));
+                }
             }    
         }       
     }

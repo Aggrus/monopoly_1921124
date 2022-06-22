@@ -100,7 +100,7 @@ class CompanyTile
 	private Integer multiplier;
 
     public CharSequence genSaveString() {
-        return String.format("dono %d, comprada: %b",getOwner().getColor() == null? -1: getOwner().getColor().getIndex(), getCanPurchase());
+        return String.format("dono %d, aVenda %b",getOwner() == null? -1: getOwner().getColor().getIndex(), getCanPurchase());
     }
 
 }

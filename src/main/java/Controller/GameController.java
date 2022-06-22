@@ -40,6 +40,21 @@ public class GameController {
         return moveResult;
     }
 
+    public List<Integer> forcedMoveAction(Integer currentPlayer, List<Integer> simulatedDice, Observer o)
+    {
+        List<Integer> moveResult = new ArrayList<Integer>();
+        System.out.printf("Clicou em rolar dados\n");
+        List<Integer> dice = ApplyRules.forceMove(currentPlayer, simulatedDice, o);
+        System.out.printf("Dados: ");
+        dice.stream().forEach(dado -> System.out.printf("%d, ", dado));
+        Integer cardId = ApplyRules.applyTileRuleToPlayerById(currentPlayer, o);
+        moveResult.add(cardId);
+        moveResult.addAll(dice);
+        System.out.println("\npositions: " + currentPlayer + "\n");
+
+        return moveResult;
+    }
+
     public boolean canBuyTile(final Integer boardPosition)
     {
         return ApplyRules.canBuyTile(boardPosition);
@@ -85,5 +100,4 @@ public class GameController {
     {
         return ApplyRules.buyTile(playerId, o);
     }
-
 }

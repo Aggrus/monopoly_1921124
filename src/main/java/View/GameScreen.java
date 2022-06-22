@@ -4,6 +4,8 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.Stroke;
+import java.awt.BasicStroke;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
@@ -15,6 +17,7 @@ import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
 import Controller.GameController;
+import Controller.SaveAndLoad;
 import Controller.Observer.GameObserver;
 import Controller.Observer.PlayerObserver;
 
@@ -39,16 +42,20 @@ public class GameScreen
 
 	private static int window_width;
 
-	private GameScreen( final int w, final int h, final int numPLayers )
+	private static List<Integer> playerColors;
+
+	private GameScreen( final int w, final int h, final int numPlayers)
 	{
 		GameScreen.window_width = w;
 		GameScreen.window_height = h;
-		GameScreen.num_players = numPLayers;
+		GameScreen.num_players = numPlayers;
 		GameScreen.playerMoney = new ArrayList<Long>( 6 );
 		GameScreen.prisionTimes = new ArrayList<Integer>( 6 );
 		GameScreen.playerPositions = new ArrayList<Integer>( 6 );
+		GameScreen.playerColors = new ArrayList<Integer>( 6 );
 		this.dice = new ArrayList<Integer>();
 		this.hasRolled = false;
+		this.gameSaved = false;
 		GameScreen.hasBought = false;
 		this.message = "";
 		while ( GameScreen.playerPositions.size() < num_players )
@@ -60,12 +67,12 @@ public class GameScreen
 		addMouseListener( this );
 	}
 
-	public static GameScreen getInstance( final int w, final int h, final int numPLayers )
+	public static GameScreen getInstance( final int w, final int h, final int numPlayers)
 	{
 		if ( game_screen == null )
 		{
-			game_screen = new GameScreen( w, h, numPLayers );
-			GameController.getInstance().createPlayers(GameScreen.getInstance(MainFrame.WIDTH, MainFrame.HEIGHT, num_players));
+			game_screen = new GameScreen( w, h, numPlayers );
+			GameController.getInstance().createPlayers(GameScreen.getInstance(MainFrame.WIDTH, MainFrame.HEIGHT, numPlayers));
 		}
 		return game_screen;
 	}
@@ -118,20 +125,49 @@ public class GameScreen
 		}
 	}
 
+	public void drawForcedDice( final Graphics g )
+	{
+		int fontSize = 20;
+		int initY = 200;
+		int initX = 650;
+		g.setFont( g.getFont().deriveFont( g.getFont().getStyle(), fontSize ) );
+		String boxTitle = String.format("Escolha seus dados");
+		for (Integer index = 1; index < 7; index++)
+		{
+			g.drawImage( dice_imgs[index - 1], initX + 10 + 50*(index-1), initY+10, 50, 50, null );
+		}
+		g.setColor( Color.WHITE );	
+		g.drawChars( boxTitle.toCharArray(), 0, boxTitle.length(), initX + (boxTitle.length()*fontSize)/4, (initY - fontSize/2));
+		g.drawRect( initX, initY, 320, 80);
+	}
+	public void drawSubmitForcedDice( final Graphics g)
+	{
+		int fontSize = 16;
+		int initY = 200;
+		int initX = 1000;
+		String boxTitle = String.format("Enviar");
+		g.fillRect( initX, initY, 70, 80);
+		g.setColor( Color.BLACK );
+		g.drawChars( boxTitle.toCharArray(), 0, boxTitle.length(), initX + 35 - (boxTitle.length()*fontSize)/4, (initY + 35 - fontSize/4));
+		
+	}
+
 	public void displayPlayersMoney(List<Long> playerMoney, final Graphics g)
 	{
 		int index = 0;
 		g.setColor( Color.LIGHT_GRAY );
-		g.fillRect( 700, (200 +  30*index), 300, 30*playerMoney.size() + 30);
+		Integer initX = 700;
+		Integer initY = 300;
+		g.fillRect( initX, initY, 300, 30*playerMoney.size() + 30);
 		for (Long money : playerMoney)
 		{
 			setColorByTurn(g, index);
 			g.setFont( g.getFont().deriveFont( g.getFont().getStyle(), 20 ) );
 			String playerTag = String.format("Jogador %d: ",index+1);
-			g.drawChars( playerTag.toCharArray(), 0, playerTag.length(), 750, (230 +  30*index));
+			g.drawChars( playerTag.toCharArray(), 0, playerTag.length(), 750, (initY +  30*(index+1)));
 			g.setColor( Color.BLACK );
 			String moneyString = "R$ " + money.toString() + ",00";
-			g.drawChars( moneyString.toCharArray(), 0, moneyString.length(), 870, (230 +  30*index));
+			g.drawChars( moneyString.toCharArray(), 0, moneyString.length(), 870, (initY +  30*(index+1)));
 			index++;
 		}
 		System.out.printf("money: %d\n", playerMoney.get(currentTurn));
@@ -217,11 +253,11 @@ public class GameScreen
 		{
 			message = "Comprar casa!";	
 			Integer fontSize = 20;
-			g.setColor( Color.BLACK );
 			int widthBox = (message.length()) * fontSize;
-			g.drawRect( 650, 30, widthBox, 50 );
 			g.setColor( Color.WHITE );
 			g.fillRect( 650, 30, widthBox, 50 );
+			g.setColor( Color.BLACK );			
+			g.drawRect( 650, 30, widthBox, 50 );
 			setColorByTurn( g, currentTurn );
 			g.setFont( g.getFont().deriveFont( g.getFont().getStyle(), fontSize ) );		
 			g.drawChars( message.toCharArray(), 0, message.length(), 650 + widthBox/4, 60 );
@@ -237,10 +273,10 @@ public class GameScreen
 			Integer width = (message.length() ) * fontSize;
 			message = "Comprar hotel!";
 			Integer newWidth = (message.length() ) * fontSize;
-			g.setColor( Color.BLACK );
-			g.drawRect( 650 + width, 30, newWidth, 50 );
 			g.setColor( Color.WHITE );
 			g.fillRect( 650 + width, 30, newWidth, 50 );
+			g.setColor( Color.BLACK );
+			g.drawRect( 650 + width, 30, newWidth, 50 );
 			setColorByTurn( g, currentTurn );
 			g.setFont( g.getFont().deriveFont( g.getFont().getStyle(), fontSize ) );		
 			g.drawChars( message.toCharArray(), 0, message.length(), 650 + width + newWidth/2, 60 );
@@ -253,8 +289,43 @@ public class GameScreen
 		if (hasBought)
 		{
 			g.setColor( Color.WHITE );
-			g.drawChars( message.toCharArray(), 0, message.length(), 800, 60 );
+			g.drawChars( message.toCharArray(), 0, message.length(), 700 + (message.length()*10)/4, 60 );
 		}
+	}
+
+	private void dawSaved( final Graphics g )
+	{
+		if (gameSaved)
+		{
+			g.setColor( Color.WHITE );
+			g.drawChars( message.toCharArray(), 0, message.length(), 700 + (message.length()*10)/4, 500 );
+			gameSaved = false;;
+		}
+	}
+
+	private boolean didClickSaveGame(int x, int y)
+	{
+		boolean didSaveGame = false;
+		message = "Salvar Jogo";	
+		Integer fontSize = 20;
+		int widthBox = (message.length() - 1) * fontSize;
+		boolean xBound = (x >= 700 && x <= 700+widthBox);
+		boolean yBound = (y >= 570 && y <= 620);
+		didSaveGame = xBound && yBound;
+		return didSaveGame;
+	}
+	private void drawSaveGame( final Graphics g )
+	{
+		message = "Salvar Jogo";	
+		Integer fontSize = 20;
+		int widthBox = (message.length()) * fontSize;
+		g.setColor( Color.WHITE );
+		g.fillRect( 700, 570, widthBox - fontSize, 50 );
+		g.setColor( Color.BLACK );			
+		g.drawRect( 700, 570, widthBox - fontSize, 50 );
+		g.setFont( g.getFont().deriveFont( g.getFont().getStyle(), fontSize ) );		
+		g.drawChars( message.toCharArray(), 0, message.length(), 700 + widthBox/4, 600 );
+		message = "";
 	}
 
 	private void drawRollDiceButton( final Graphics g )
@@ -285,7 +356,7 @@ public class GameScreen
 
 	private void drawDice( final Graphics g )
 	{
-		if (hasRolled)
+		if (dice.size() > 0)
 		{
 			int index = 0;
 			for (Integer result : dice)
@@ -332,7 +403,7 @@ public class GameScreen
 			this.player_imgs = new Image[num_players];
 			for ( i = 0; i < num_players; i++ )
 			{
-				this.player_imgs[i] = ImageIO.read( new File( "src/main/java/data/pinos/pin" + i + ".png" ) );
+				this.player_imgs[i] = ImageIO.read( new File( "src/main/java/data/pinos/pin" + playerColors.get(i) + ".png" ) );
 			}
 		}
 		catch ( final IOException e )
@@ -390,9 +461,64 @@ public class GameScreen
 		else if (didClickNextTurn( x, y ))
 		{
 			GameController.getInstance().nextTurn(GameScreen.getInstance(MainFrame.WIDTH, MainFrame.HEIGHT, num_players));
+			dice.clear();
 			hasRolled = !hasRolled;
 			GameController.getInstance().resetHasBought(GameScreen.getInstance(MainFrame.WIDTH, MainFrame.HEIGHT, num_players));
 			repaint();
+		}
+		else if (didClickSaveGame(x, y))
+		{
+			try
+			{
+				message = SaveGameView.saveGame();
+				gameSaved = true;
+				repaint();
+			}
+			catch(IOException ex)
+			{
+				ex.printStackTrace();
+			}
+		}
+		else if (x >= 1000 && x <= 1070 && y >= 200 && y <= 280)
+		{
+			List<Integer> result = GameController.getInstance().forcedMoveAction(currentTurn, dice, GameScreen.getInstance(MainFrame.WIDTH, MainFrame.HEIGHT, num_players));
+			cardId = result.get(0);
+			dice = result.subList(1, result.size());
+			hasRolled = true;
+			repaint();
+		}
+		else if (y >= 210 && y <= 260)
+		{
+			if (x >= 660 && x <= 710)
+			{
+				dice.add(1);
+				repaint();
+			}
+			else if (x >= 710 && x <= 760)
+			{
+				dice.add(2);
+				repaint();
+			}
+			else if (x >= 760 && x <= 810)
+			{
+				dice.add(3);
+				repaint();
+			}
+			else if (x >= 810 && x <= 860)
+			{
+				dice.add(4);
+				repaint();
+			}
+			else if (x >= 860 && x <= 910)
+			{
+				dice.add(5);
+				repaint();
+			}
+			else if (x >= 910 && x <= 960)
+			{
+				dice.add(6);
+				repaint();
+			}
 		}
 	}
 
@@ -404,14 +530,28 @@ public class GameScreen
 	@Override
 	public void nofityBoardPosition( final Integer boardPosition, final Integer playerId )
 	{
-		GameScreen.playerPositions.set( playerId, boardPosition );
+		if (playerId > playerPositions.size() - 1)
+		{
+			GameScreen.playerPositions.add( boardPosition );
+		}
+		else
+		{
+			GameScreen.playerPositions.set( playerId, boardPosition );
+		}
 	}
 
 	// public void notifyFreeRide(boolean freeRide, Integer playerId);
 	@Override
 	public void notifyMoney( final Long money, final Integer playerId )
 	{
-		GameScreen.playerMoney.set( playerId, money );
+		if (playerId > playerMoney.size() - 1)
+		{
+			GameScreen.playerMoney.add( money );
+		}
+		else
+		{
+			GameScreen.playerMoney.set( playerId, money );
+		}
 	}
 
 	@Override
@@ -428,7 +568,27 @@ public class GameScreen
 	@Override
 	public void notifyPrisionTime( final Integer prisionTime, final Integer playerId )
 	{
-		GameScreen.prisionTimes.set( playerId, prisionTime );
+		if (playerId > prisionTimes.size() - 1)
+		{
+			GameScreen.prisionTimes.add( prisionTime );
+		}
+		else
+		{
+			GameScreen.prisionTimes.set( playerId, prisionTime );
+		}
+	}
+
+	@Override
+	public void notifyColor(Integer color, Integer playerId) {
+		if (playerId > playerColors.size() - 1)
+		{
+			GameScreen.playerColors.add( color );
+		}
+		else
+		{
+			GameScreen.playerColors.set( playerId, color );
+		}
+		
 	}
 
 	@Override
@@ -455,6 +615,11 @@ public class GameScreen
 		drawBuyHouseButton(g2d);
 		drawBuyHotelButton(g2d);
 		drawMessage(g2d);
+		drawSaveGame(g2d);
+		dawSaved( g2d );
+		g2d.setStroke(new BasicStroke((float)12.0));
+		drawForcedDice(g2d);
+		drawSubmitForcedDice(g2d);
 
 		this.graphics = g.create();
 	}
@@ -480,6 +645,8 @@ public class GameScreen
 	private boolean hasRolled;
 
 	private static boolean hasBought;
+
+	private boolean gameSaved;
 
 	private String message;
 }

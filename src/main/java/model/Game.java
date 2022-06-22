@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 import Controller.Observer.GameObserver;
 import Controller.Observer.Observable;
 import Controller.Observer.Observer;
+import Controller.Observer.PlayerObserver;
 import enums.BuildingEnum;
 import enums.PlayerColorEnum;
 
@@ -229,7 +230,7 @@ public class Game
 		return observerFromList.isPresent();
 	}
 
-	public static void loadGame(String file)
+	public static void loadGame(String file, Observer o)
 	{
 		try {
             Pattern pattern;
@@ -243,58 +244,85 @@ public class Game
 			Game.setNumPlayers(Integer.parseInt(matcher.group(2))); 
             
             // recriando jogadores e propriedades com dono
-            List<Player> players = new ArrayList<Player>(6);      
+			Integer lastColorMatch = 0;
+			Game.setPlayerList(new ArrayList<Player>(6));     
             for (int i = 0; i < numPlayers; i++) {
-                pattern = Pattern.compile("(\t)(player )(\\d+)( casa )(\\d+)(, money )(\\d+)(, cartaSair )(false|true)(, preso )(false|true)(, rodadasNaPrisao )(\\d+)(;)(\t\t)(propriedades: )(\\[(\\d+, )*\\d*?\\]);");
+                pattern = Pattern.compile("(\t)(player )(["+lastColorMatch+"-6]+)( casa )(\\d+)(, money )(\\d+)(, cartaSair )(false|true)(, preso )(false|true)(, rodadasNaPrisao )(\\d+)(;)");
                 matcher = pattern.matcher(file);
                 matcher.find();
-				int cor  = Integer.parseInt(matcher.group(3));
+				Integer cor  = Integer.parseInt(matcher.group(3));
+				lastColorMatch = cor + 1;
                 int boardPos = Integer.parseInt(matcher.group(5));
                 Long money = Long.parseLong(matcher.group(7));
                 boolean cartaSair = Boolean.parseBoolean(matcher.group(9));
                 boolean preso = Boolean.parseBoolean(matcher.group(11));
                 Integer tempoPreso = Integer.parseInt(matcher.group(13));
-                players.add(new Player(PlayerColorEnum.values()[cor], money, boardPos, preso, tempoPreso, cartaSair));
+				Player player = new Player(PlayerColorEnum.values()[cor], money, boardPos, preso, tempoPreso, cartaSair);
+				if (player.hasObserver(o))
+				{
+					player.update(o);
+				}
+				else
+				{
+					player.add(o);
+				}
+                Game.playerList.add(player);
             }
-            Game.setPlayerList(players);
+            
             // recuperar de quem era a vez
             pattern = Pattern.compile("(vez: )(\\d+)(;)");
             matcher = pattern.matcher(file);
             matcher.find();
-            Game.setTurn(Integer.parseInt(matcher.group(2)));         
-            // recuperar as cartas de sorte reves
-			ApplyRules.shuffleDeck();
-            pattern = Pattern.compile("(cartasSortes: )(\\[(\\d+, )*\\d*?\\]);");
+            Game.setTurn(Integer.parseInt(matcher.group(2)));
+			// recuperar se jogador da vez fez compra
+            pattern = Pattern.compile("(teveCompra: )(false|true)(;)");
             matcher = pattern.matcher(file);
             matcher.find();
-            String[] arrcartas = matcher.group(2).split("(, )|\\[|(\\])");
+            Game.setHasBought(Boolean.parseBoolean(matcher.group(2)));         
+            // recuperar as cartas de sorte reves
+			ApplyRules.shuffleDeck();
+            pattern = Pattern.compile("(cartasSortes: )((\\d+, )*\\d*?);");
+            matcher = pattern.matcher(file);
+            matcher.find();
+            String[] arrcartas = matcher.group(2).split(", ");// |\\[|(\\])
 			List<String> listCards = Arrays.asList(arrcartas);
             if (arrcartas.length > 0) {
 				cards.removeIf(card -> 	!listCards.contains(card.getId().toString()));
             }
         } catch (IllegalStateException e) {
             System.out.println("Erro: arquivo em formato inválido.");
-            System.exit(0);
+			e.printStackTrace();
         }      
         // recriando casas e hoteis
 		ApplyRules.createBoard();
         for (int i = 0; i < tiles.size(); i++) {
             // empresas
-            Pattern pattern = Pattern.compile("(\t)(((empresa) " + i + ": dono (\\d+), comprada (false|true);)|((terreno) " + i + ": casa (\\d+), hotel (\\d+), comprada (false|true), dono (\\d+), aluguel (\\d+));))");
+			switch(i)
+			{
+				case 0: case 2: case 10: case 12: case 16: case 18: case 20: case 22: case 24: case 27: case 30: case 37:
+				{
+					continue;
+				}
+			}
+            Pattern pattern = Pattern.compile("(\t)(((empresa) " + i  + ": dono (-?\\d+), aVenda (false|true);)|((terreno) " + i + ": casa (\\d+), hotel (\\d+), aVenda (false|true), dono (-?\\d+), aluguel (\\d+));)");
             Matcher matcher = pattern.matcher(file);
             matcher.find();
-            if (matcher.group(6) != null && matcher.group(6).contentEquals("terreno"))
+            if (matcher.group(9) != null && matcher.group(1).equals("terreno"))
 			{
 				if (tiles.get(i) instanceof Property)
 				{
 					Property t = (Property)tiles.get(i);
 
-                	int casa = Integer.parseInt(matcher.group(11));
-                	int hotel = Integer.parseInt(matcher.group(13));
+                	int casa = Integer.parseInt(matcher.group(4));
+                	int hotel = Integer.parseInt(matcher.group(6));
 					boolean temHotel = hotel == 1;
-					Boolean vendida = Boolean.parseBoolean(matcher.group(15));
-					Player dono = Game.getPlayerList().stream().filter(player -> player.getColor().equals(PlayerColorEnum.values()[Integer.parseInt(matcher.group(17))])).findFirst().get();
-					Long aluguel = Long.parseLong(matcher.group(19));
+					Boolean vendida = Boolean.parseBoolean(matcher.group(8));
+					Player dono = null;
+					if (Integer.parseInt(matcher.group(10)) != -1)
+					{
+						Game.getPlayerList().stream().filter(player -> player.getColor().equals(PlayerColorEnum.values()[Integer.parseInt(matcher.group(10))])).findFirst().get();
+					}
+					Long aluguel = Long.parseLong(matcher.group(12));
                 	List<Building> buildings = new ArrayList<Building>(5);
 					for (int j = 0; j < casa - 1; j++)
 					{
@@ -327,9 +355,10 @@ public class Game
 		for (Player player :  getPlayerList()) {
 			file.append("\tplayer " + player.getColor().getIndex() + " ");
 			file.append(player.genSaveString());
-			file.append(";\n");
 		}
 		file.append("vez: " + turn + ";\n");
+
+		file.append("teveCompra: " + hasBought + ";\n");
 
 		file.append("cartasSortes: "); 
 		file.append(cards.get(0).getId().toString());
@@ -338,7 +367,6 @@ public class Game
 			file.append(", " + card.getId());
 		}
 		file.append( ";\n");
-		file.append("propriedades: " + tiles.size() + ";\n");
 		for (AbstractTile tile : getTiles()) {
 			if (tile instanceof Property) {
 				file.append("\tterreno " + tile.getBoardPosition() + ": ");
@@ -355,7 +383,7 @@ public class Game
 		}
 		
 		file.close();
-		return null;
+		return "Jogo Salvo!";
 	}
 
 }

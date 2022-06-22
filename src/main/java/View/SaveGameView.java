@@ -8,9 +8,10 @@ import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import Controller.SaveAndLoad;
+import Controller.Observer.Observer;
 
 public class SaveGameView {
-    public static void loadGame()
+    public static void loadGame( Observer o)
     {
         JFileChooser fc = new JFileChooser(".");
         fc.setFileFilter(new FileNameExtensionFilter("TXT Files (*.txt)", "txt"));
@@ -36,10 +37,10 @@ public class SaveGameView {
             System.out.println( "Erro: arquivo não encontrado.");
             System.exit(0);
         }
-        SaveAndLoad.loadGame(fStr); 
+        SaveAndLoad.loadGame(fStr, o); 
     }
-    public static void saveGame() throws IOException
+    public static String saveGame() throws IOException
     {
-        SaveAndLoad.saveGame(); 
+        return SaveAndLoad.saveGame(); 
     }
 }

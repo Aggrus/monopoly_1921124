@@ -9,6 +9,14 @@ public class MainFrame extends JFrame implements GameObserver{
     public final int DFLT_HEIGHT = 700;
     private static int num_players = 0;
 
+    public static void setNum_players(int num_players) {
+        MainFrame.num_players = num_players;
+    }
+
+    public static int getNum_players() {
+        return num_players;
+    }
+
     private static MainFrame main_frame = null;
 
     private MainFrame() {

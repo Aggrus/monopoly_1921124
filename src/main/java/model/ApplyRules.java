@@ -625,7 +625,7 @@ public class ApplyRules
 	{
 		final Player player = Game.getPlayerList().get( playerId );
 		player.setInPrision( simulatedDice.size() > 6 );
-		Dice.setDie(simulatedDice);
+		Dice.getInstance().setDie(simulatedDice);
 		if ( player.isInPrision() )
 		{
 			simulatedDice.clear();

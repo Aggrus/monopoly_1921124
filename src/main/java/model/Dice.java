@@ -63,7 +63,7 @@ class Dice
 	}
 
 	// Set last dice roll
-	public static void setDie( final List<Integer> die )
+	public void setDie( final List<Integer> die )
 	{
 		die.forEach(result -> Dice.die.add(result));
 	}
@@ -81,7 +81,7 @@ class Dice
 		dice.add( diceTwo );
 
 		diceOne = diceTwo = 0;
-		setDie( dice );
+		getInstance().setDie( dice );
 		return dice;
 	}
 

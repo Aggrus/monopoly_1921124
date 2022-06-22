@@ -284,6 +284,7 @@ class Property
 		if ( !player.equals( getOwner() ) && getOwner() != null)
 		{
 			player.loseMoney( getRent() );
+			this.getOwner().loseMoney(- getRent());
 		}
 	}
 

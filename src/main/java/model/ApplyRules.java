@@ -50,6 +50,10 @@ public class ApplyRules
 			case 35 :
 			{
 				( ( CompanyTile ) playerTile ).tileRule( playerId );
+				if(playerTile.getOwner() != null)
+				{
+					( ( CompanyTile ) playerTile ).getOwner().update(o);
+				}	
 				break;
 			}
 			case 10 :
@@ -80,6 +84,10 @@ public class ApplyRules
 			default :
 			{
 				( ( Property ) playerTile ).tileRule( playerId );
+				if(playerTile.getOwner() != null)
+				{
+					( ( Property ) playerTile ).getOwner().update(o);
+				}				
 				break;
 			}
 		}
@@ -632,18 +640,6 @@ public class ApplyRules
 		}
 		movePlayer( player, simulatedDice, o );
 		return simulatedDice;
-	}
-
-	public static Integer getPlayerPositionByNumber( final Integer playerNum )
-	{
-		final Integer boardPosition = Game
-			.getPlayerList()
-			.stream()
-			.filter( player -> player.getColor().equals( PlayerColorEnum.values()[playerNum] ) )
-			.findAny()
-			.get()
-			.getBoardPosition();
-		return boardPosition;
 	}
 
 	private static void movePlayer( final Player player, final List<Integer> dice, Observer o )

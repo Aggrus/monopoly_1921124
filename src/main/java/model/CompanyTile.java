@@ -1,5 +1,7 @@
 package model;
 
+import java.util.List;
+
 import Exception.IllegalRuleException;
 import enums.TileEnum;
 
@@ -92,8 +94,11 @@ class CompanyTile
 		Player player = Game.getPlayerList().get(playerId);
 		if ( !player.equals( getOwner() ) && getOwner() != null)
 		{
-			final Integer rollTotal = Dice.simpleRoll().stream().mapToInt( r -> r ).sum();
+			List<Integer> dice = Dice.simpleRoll();
+			dice.stream().forEach(dado -> System.out.printf("%d, ", dado));
+			final Integer rollTotal = dice.stream().mapToInt( r -> r ).sum();
 			player.loseMoney( Long.valueOf( rollTotal * getMultiplier() ) );
+			this.getOwner().loseMoney(- Long.valueOf( rollTotal * getMultiplier() ));
 		}
 	}
 

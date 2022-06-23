@@ -175,7 +175,7 @@ public class GameScreen
 
 	private void setColorByTurn(Graphics g, Integer turn)
 	{
-		switch ( GameController.getInstance().getColorIndexByPlayerTurn(turn))
+		switch ( playerColors.get(currentTurn))
 		{
 			case 0 :
 			{

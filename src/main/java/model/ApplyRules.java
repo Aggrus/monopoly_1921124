@@ -111,9 +111,9 @@ public class ApplyRules
 			property.getBuildingValue(),
 			property );
 
-		final boolean canBuyHotel = property.buyBuilding( playerId, building );
+		final boolean canBuyBuilding = property.buyBuilding( playerId, building );
 
-		if ( canBuyHotel )
+		if ( canBuyBuilding )
 		{
 			response = "Sucesso! Contrução comprada!";
 		}
@@ -230,7 +230,7 @@ public class ApplyRules
 			player.setInPrision( !isFree );
 			if (!isFree)
 			{
-				player.addPriosionTime();
+				player.addPrisionTime();
 			}
 			else
 			{

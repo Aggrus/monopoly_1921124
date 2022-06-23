@@ -75,7 +75,7 @@ class Player
 		this.observer.get( this.observer.size() - 1 ).notifyColor(color.getIndex(), this.color.getIndex());
 	}
 
-	public void addPriosionTime()
+	public void addPrisionTime()
 	{
 		this.prisionTime++;
 	}
@@ -258,7 +258,7 @@ class Player
 	 * <p>
 	 * </p>
 	 *
-	 * @return Returns the inPriosion.
+	 * @return Returns the inPrision.
 	 * @see #inPrision
 	 */
 	public boolean isInPrision()
@@ -359,13 +359,13 @@ class Player
 	 * <p>
 	 * </p>
 	 *
-	 * @param inPriosion
-	 *            The inPriosion to set.
+	 * @param inPrision
+	 *            The inPrision to set.
 	 * @see #inPrision
 	 */
-	public void setInPrision( final boolean inPriosion )
+	public void setInPrision( final boolean inPrision )
 	{
-		this.inPrision = inPriosion;
+		this.inPrision = inPrision;
 	}
 
 	/**
